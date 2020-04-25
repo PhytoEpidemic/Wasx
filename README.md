@@ -1,5 +1,5 @@
 # Wasx
-A very versatile input manager for LÖVE
+A very versatile input manager for [LÖVE](http://love2d.org) version 11.3
 
 ```lua
 Wasx.help("function name")-- Pass in the name of the function to get more info on it. e.g. Wasx.help("buttons"). 
