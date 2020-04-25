@@ -757,7 +757,7 @@ Input:button(button, button2,...)-- Returns true if one of the specified buttons
 	]],
 }
 
-function Wasx:help(funct)
+function Wasx.help(funct)
 	funct = funct or "help"
 	if type(funct) ~= "string" then
 		return error("Bad argument #1. Expected string, got: "..type(funct)..[[. Try Wasx.help("all")]])
