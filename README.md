@@ -134,5 +134,7 @@ Input:axes(side, deadzone)
 ```
 Returns a table with an x and y value between -1 and 1 based on the specified analog sticks position.
 
-
-Input:loadKeyMappings(path, fileName)-- Loads the file at the specified path and puts it in Input.keyMappings.
+```lua
+Input:loadKeyMappings(path, fileName)
+```
+Loads the file at the specified path and puts it in Input.keyMappings.
