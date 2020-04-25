@@ -1,11 +1,8 @@
 # Wasx
 A very versatile input manager for LÖVE
 
-<code/>
-Wasx.help("function name")-- Pass in the name of the function to get more info on it. e.g. Wasx.help("buttons"). Wasx.help("all") will 
 
-return the whole help section as a string.
-</>
+    Wasx.help("function name")-- Pass in the name of the function to get more info on it. e.g. Wasx.help("buttons"). Wasx.help("all") will return the whole help section as a string.
 id = 1, 2, 3, etc...-- The number asigned to that joystick.
 side = "left" or "right"-- Refers to analog sticks and triggers.
 deadzone = 0-1.-- How far do you want to move the analog stick before it registers an input.
