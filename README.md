@@ -77,6 +77,7 @@ Same as Input:button() but will only return true once, until the previously pres
 Input:index(var, info)
 ```
 This function will link Input.data[var] to the specified input function.
+
 e.g.
 ```lua
 info = {
@@ -90,6 +91,7 @@ info = {
 }
 ```
 input = "angle" is special, you only need to put a side.
+
 e.g.
 ```lua
 info = {
@@ -98,6 +100,7 @@ info = {
 }
 ```
 If you make an index tied to a stick axes you can just map the rest with Input:mapKeyAnalog()
+
 e.g.
 ```lua
 Input:mapKeyAnalog("stick", "left", {x = 0, y = -1}, {"w"})
