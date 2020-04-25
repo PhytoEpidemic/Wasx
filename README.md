@@ -3,8 +3,10 @@ A very versatile input manager for LÖVE
 
 ```lua
 Wasx.help("function name")-- Pass in the name of the function to get more info on it. e.g. Wasx.help("buttons"). 
-Wasx.help("all") will return the whole help section as a string.
+Wasx.help("all") --will return the whole help section as a string.
 ```
+Variables
+```lua
 id = 1, 2, 3, etc...-- The number asigned to that joystick.
 side = "left" or "right"-- Refers to analog sticks and triggers.
 deadzone = 0-1.-- How far do you want to move the analog stick before it registers an input.
@@ -14,10 +16,15 @@ buttonIndex = -- See Wasx.help("mapKey")
 TorS = "trigger" or "stick"
 output = -- See Wasx.help("mapKeyAnalog")
 var, info = -- See Wasx.help("index")
-
+```
+Usage
+```lua
 Input = Wasx.new(id)
-
-Input.useGamepad = true or false -- This is set to true if an input is detected by the joystick. If a mapped key is pressed then it is set to false.
+```
+```lua
+Input.useGamepad = true or false 
+```
+This is set to true if an input is detected by the joystick. If a mapped key is pressed then it is set to false.
 
 
 Input:angle(side, deadzone)-- Returns the specified analog sticks angle in radians.
