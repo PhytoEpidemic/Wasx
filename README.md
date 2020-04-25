@@ -21,22 +21,31 @@ Usage
 ```lua
 Input = Wasx.new(id)
 ```
+You need to create the Input object first.
 ```lua
 Input.useGamepad = true or false 
 ```
 This is set to true if an input is detected by the joystick. If a mapped key is pressed then it is set to false.
 
+```lua
+Input:angle(side, deadzone)
+```
+Returns the specified analog sticks angle in radians.
 
-Input:angle(side, deadzone)-- Returns the specified analog sticks angle in radians.
+```lua
+Input:saveKeyMappings(path, fileName)
+```
+Saves the Input.keyMappings table to the specified path. fileName will default to "default" if no name is provided. Returns Input.keyMappings as a string if no path is provided.
 
+```lua
+Input:mapKeyAnalog(TorS, side, output, keys)
+```
+output is a number between 0 and 1 for "trigger", or is a table that looks like this {x = 0, y = 0} with the values set between -1 and 1.
 
-Input:saveKeyMappings(path, fileName)-- Saves the Input.keyMappings table to the specified path. fileName will default to "default" if no name is provided. Returns Input.keyMappings as a string if no path is provided.
-
-
-Input:mapKeyAnalog(TorS, side, output, keys)-- output is a number between 0 and 1 for "trigger", or is a table that looks like this {x = 0, y = 0} with the values set between -1 and 1.
-
-
-Input:button(button, button2,...)-- Returns true if one of the specified buttons is being pressed.
+```lua
+Input:button(button, button2,...)
+```
+Returns true if one of the specified buttons is being pressed.
 
 "a"-- Bottom face button (A).
 "b"-- Right face button (B).
@@ -54,15 +63,22 @@ Input:button(button, button2,...)-- Returns true if one of the specified buttons
 "dpleft"-- D-pad left.
 "dpright"-- D-pad right.
 
+```lua
+Input:mapKey(buttonIndex, keys)
+```
+buttonIndex is a string of the button combination you want mapped to a set of keys. e.g. "a" or "aback"
 
-Input:mapKey(buttonIndex, keys)-- buttonIndex is a string of the button combination you want mapped to a set of keys. e.g. "a" or "aback"
+```lua
+Input:buttonOnce(button, button2,...)
+```
+Same as Input:button() but will only return true once, until the previously pressed button is unpressed.
 
-
-Input:buttonOnce(button, button2,...)-- Same as Input:button() but will only return true once, until the previously pressed button is unpressed.
-
-
-Input:index(var, info)-- This function will link Input.data[var] to the specified input function.
+```lua
+Input:index(var, info)
+```
+This function will link Input.data[var] to the specified input function.
 e.g.
+```lua
 info = {
         input = "button", "buttonOnce", "buttonToggle", "trigger", "angle" or "axes",
         keys = {"w", "space"}, -- (optional if buttons are givin)
@@ -72,16 +88,18 @@ info = {
         output = -- See Wasx.help("mapKeyAnalog"),
         deadzone = 0-1 -- (optional) default is 0.25 if no deadzone is givin,
 }
-
+```
 input = "angle" is special, you only need to put a side.
 e.g.
+```lua
 info = {
         input = "angle",
         side = "left" or "right",
 }
-
+```
 If you make an index tied to a stick axes you can just map the rest with Input:mapKeyAnalog()
 e.g.
+```lua
 Input:mapKeyAnalog("stick", "left", {x = 0, y = -1}, {"w"})
 Input:index("move", {
         input = "axes",
@@ -91,18 +109,27 @@ Input:index("move", {
 })
 Input:mapKeyAnalog("stick", "left",{x = 0, y = 1}, {"s"})
 Input:mapKeyAnalog("stick", "left",{x = 1, y = 0}, {"d"})
+```
 Order does not matter.
 
+Then pick a var that makes sense for your project
+```lua
 Input:index("jump", info)
+```
+```lua
+Input:buttonToggle(button, button2,...)
+```
+Starts returning false. When the specified buttons are pressed it will toggle between returning true or false. Will only toggle once, until the previously pressed button is unpressed.
 
+```lua
+Input:trigger(side)
+```
+Returns the specified triggers in position. returns a value between 0 and 1.
 
-Input:buttonToggle(button, button2,...)-- Starts returning false. When the specified buttons are pressed it will toggle between returning true or false. Will only toggle once, until the previously pressed button is unpressed.
-
-
-Input:trigger(side)-- Returns the specified triggers in position. returns a value between 0 and 1.
-
-
-Input:axes(side, deadzone)-- Returns a table with an x and y value between -1 and 1 based on the specified analog sticks position.
+```lua
+Input:axes(side, deadzone)
+```
+Returns a table with an x and y value between -1 and 1 based on the specified analog sticks position.
 
 
 Input:loadKeyMappings(path, fileName)-- Loads the file at the specified path and puts it in Input.keyMappings.
