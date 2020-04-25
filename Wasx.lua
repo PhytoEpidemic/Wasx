@@ -642,8 +642,8 @@ Wasx.help("function name")-- Pass in the name of the function to get more info o
 id = 1, 2, 3, etc...-- The number asigned to that joystick.
 side = "left" or "right"-- Refers to analog sticks and triggers.
 deadzone = 0-1.-- How far do you want to move the analog stick before it registers an input.
-button, button2 = "a","b",... -- The button on the joystick/Gamepad you want to be pressed. You can pass in as many and you like. print(Wasx.help("buttons")) to see the the list of buttons.
-keys = {key1,key2,...} -- Keys are represented by strings e.g. "space". You can also put in a number, which represents a mouse button e.g. 1,2, or 3 for middle click.
+button, button2 = "a", "b", ... -- The button on the joystick/Gamepad you want to be pressed. You can pass in as many as you like. print(Wasx.help("buttons")) to see the the list of buttons.
+keys = {key1, key2, ...} -- Keys are represented by strings e.g. "space". You can also put in a number, which represents a mouse button e.g. 1, 2, or 3 for middle click.
 buttonIndex = -- See Wasx.help("mapKey")
 TorS = "trigger" or "stick"
 output = -- See Wasx.help("mapKeyAnalog")
