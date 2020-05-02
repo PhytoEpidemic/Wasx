@@ -1,6 +1,6 @@
 
 local Wasx = {
-	_VERSION     = 'Wasx v1.0.0',
+	_VERSION     = 'Wasx v1.0.1',
 	_DESCRIPTION = 'A very versatile input manager for LÖVE',
 	_URL         = 'https://github.com/PhytoEpidemic/Wasx',
 	_LICENSE     = [[
@@ -395,7 +395,7 @@ function Wasx:axes(side,deadzone)
 		end
 		return s
 	else
-		return false
+		return {x = 0, y = 0}
 	end
 end
 
@@ -408,7 +408,7 @@ function Wasx:angle(side,deadzone)
 		return error("Bad argument #2. Expected number, got: "..type(deadzone))
 	end
 	if not self:isConnected() then
-		return false
+		return 0
 	end
 	local ax = self.joystick:getGamepadAxis(side.."x")
 	local ay = self.joystick:getGamepadAxis(side.."y")
@@ -444,7 +444,7 @@ function Wasx:trigger(side)
 		end
 		return act
 	else
-		return false
+		return 0
 	end
 end
 
@@ -607,7 +607,7 @@ function Wasx:index(var,info)
 		end
 		self.keyMappings.angle[info.side][var] = true
 	else
-		return error([[NO MAPPINGS!!! See Wasx.help("index")]])
+		--return error([[NO MAPPINGS!!! See Wasx.help("index")]])
 	end
 end
 
