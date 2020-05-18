@@ -129,6 +129,8 @@ function Wasx.new(id)
 	
 	self.data = {}
 	
+	self.activeVibrations = {}
+	
 	self.toggles = {}
 	
 	self.toggleSet = {}
@@ -522,6 +524,30 @@ function Wasx:buttonToggle(...)
 	return self.toggleSet[buttonIndex] or false
 end
 
+function Wasx:vibrate(left,right,tag)
+	if type(left) == "string" then
+		self.activeVibrations[left] = nil
+		return
+	elseif not left then
+		self.activeVibrations = {}
+		return
+	end
+	left = left or {0,0,0}
+	right = right or {0,0,0}
+	local v = {}
+	v.left = {}
+	for i,n in ipairs(left) do
+		v.left[i] = n
+	end
+	v.left[4] = v.left[3]
+	v.right = {}
+	for i,n in ipairs(right) do
+		v.right[i] = n
+	end
+	v.right[4] = v.right[3]
+	self.activeVibrations[tag or #self.activeVibrations+1] = v
+end
+
 local indexInputs = {
 	"button",
 	"buttonOnce",
@@ -606,12 +632,44 @@ function Wasx:index(var,info)
 			return error([[Bad argument #2, index["side"]. Expected string "right" or "left", got: "]]..info.side..[["]])
 		end
 		self.keyMappings.angle[info.side][var] = true
+	elseif info.input == "axes" then
+		if not info.side then
+			return error([[When useing input = "axes" you must include side = "left or "right".]])
+		elseif type(info.side) ~= "string" then
+			return error([[Bad argument #2, index["side"]. Expected string, got: ]]..type(info.side))
+		elseif info.side ~= "left" and info.side ~= "right" then
+			return error([[Bad argument #2, index["side"]. Expected string "right" or "left", got: "]]..info.side..[["]])
+		end
 	else
-		--return error([[NO MAPPINGS!!! See Wasx.help("index")]])
+		return error([[NO MAPPINGS!!! See Wasx.help("index")]])
 	end
 end
 
-function Wasx:updateData()
+function Wasx:updateData(dt)
+	dt = dt or 0.016
+	if self.joystick:isVibrationSupported( ) then
+		local vibrateLeft = 0
+		local vibrateRight = 0
+		for i,v in pairs(self.activeVibrations) do
+			if v.left[3] > 0 then
+				local x = v.left[4]-v.left[3]
+				local m = (v.left[1]-v.left[2])/(0-v.left[4])
+				vibrateLeft = vibrateLeft+(m*x+v.left[1])
+				v.left[3] = v.left[3]-dt
+			end
+			if v.right[3] > 0 then
+				local x = v.right[4]-v.right[3]
+				local m = (v.right[1]-v.right[2])/(0-v.right[4])
+				vibrateRight = vibrateRight+(m*x+v.right[1])
+				v.right[3] = v.right[3]-dt
+			end
+			if v.left[3] <= 0 and v.right[3] <= 0 then
+				table.remove(self.activeVibrations,i)
+			end
+		end
+		local maxStrength = 0.5 -- This should be 1 but I think LOVE has a bug ¯\_(ツ)_/¯
+		self.joystick:setVibration( math.min(maxStrength,vibrateLeft*maxStrength), math.min(maxStrength,vibrateRight*maxStrength) )
+	end
 	for var,info in pairs(self.keyMappings.data) do
 		local pass
 		if info.buttons then
@@ -635,6 +693,9 @@ function Wasx:updateData()
 	end
 end
 
+
+
+
 local help = {
 	help = [[
 Wasx.help("function name")-- Pass in the name of the function to get more info on it. e.g. Wasx.help("buttons"). Wasx.help("all") will return the whole help section as a string.
@@ -648,6 +709,7 @@ buttonIndex = -- See Wasx.help("mapKey")
 TorS = "trigger" or "stick"
 output = -- See Wasx.help("mapKeyAnalog")
 var, info = -- See Wasx.help("index")
+left, right, tag = -- See Wasx.help("vibrate")
 
 Input = Wasx.new(id)
 
@@ -667,6 +729,7 @@ Input:mapKey(buttonIndex, keys)
 Input:mapKeyAnalog(TorS, side, output, keys)
 Input:index(var, info)
 Input:updateData()
+Input:vibrate(left, right, tag)
 Input:saveKeyMappings(path, fileName)
 Input:loadKeyMappings(path, fileName)
 
@@ -680,6 +743,16 @@ Input:angle(side, deadzone)-- Returns the specified analog sticks angle in radia
 	trigger = [[
 Input:trigger(side)-- Returns the specified triggers in position. returns a value between 0 and 1.
 	 ]],
+	vibrate = [[
+Input:vibrate(left, right, tag)-- Adds vibration settings table to Input.activeVibrations
+e.g.
+left = false-- pass false or nil to skip a value.
+right = {1, 0, 2}-- startingStrength, endStrength, transitionTime -- Strength values are between 0 and 1.
+tag = "myCustomName"-- If you give a tag the vibration settings will go in/replace Input.activeVibrations[tag] instead of creating a new index (optional).
+
+-- If no values are givin then Input.activeVibrations will be cleared.
+-- Use Input:vibrate(tag) to clear only Input.activeVibrations[tag].
+	]],
 	 index = [[
 Input:index(var, info)-- This function will link Input.data[var] to the specified input function.
 e.g.
