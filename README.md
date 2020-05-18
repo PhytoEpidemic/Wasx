@@ -1,4 +1,4 @@
-# Wasx v1.1.0
+# Wasx v1.1.1
 A very versatile input manager for [LÖVE](http://love2d.org) version 11.3
 
 ```lua
@@ -22,6 +22,12 @@ Usage
 Input = Wasx.new(id)
 ```
 You need to create the Input object first.
+
+```lua
+Input:updateData(dt)
+```
+Run this at the start of each update cycle.
+
 ```lua
 Input.useGamepad = true or false 
 ```
@@ -56,6 +62,7 @@ Input:vibrate(left, right, tag)
 Adds vibration settings table to Input.activeVibrations
 If no values are givin then Input.activeVibrations will be cleared.
 Use ```Input:vibrate(tag)``` to clear only Input.activeVibrations[tag].
+Use ```Input:updateData(dt)``` when using vibrations.
 
 ```lua
 Input:button(button, button2,...)
