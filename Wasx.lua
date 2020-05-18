@@ -728,7 +728,7 @@ Input:buttonToggle(button, button2,...)
 Input:mapKey(buttonIndex, keys)
 Input:mapKeyAnalog(TorS, side, output, keys)
 Input:index(var, info)
-Input:updateData()
+Input:updateData(dt)
 Input:vibrate(left, right, tag)
 Input:saveKeyMappings(path, fileName)
 Input:loadKeyMappings(path, fileName)
@@ -743,6 +743,9 @@ Input:angle(side, deadzone)-- Returns the specified analog sticks angle in radia
 	trigger = [[
 Input:trigger(side)-- Returns the specified triggers in position. returns a value between 0 and 1.
 	 ]],
+	updateData = [[
+Input:updateData(dt)-- Run this at the start of each update cycle.
+	]],
 	vibrate = [[
 Input:vibrate(left, right, tag)-- Adds vibration settings table to Input.activeVibrations
 e.g.
@@ -752,6 +755,7 @@ tag = "myCustomName"-- If you give a tag the vibration settings will go in/repla
 
 -- If no values are givin then Input.activeVibrations will be cleared.
 -- Use Input:vibrate(tag) to clear only Input.activeVibrations[tag].
+-- Use Input:updateData(dt) when using vibrations.
 	]],
 	 index = [[
 Input:index(var, info)-- This function will link Input.data[var] to the specified input function.
@@ -789,7 +793,7 @@ Order does not matter.
 Input:index("jump", info)
 	 ]],
 	 mapKey = [[
-Input:updateData()-- Updates all the variables in Input.data.
+Input:updateData(dt)-- Updates all the variables in Input.data.
 	 ]],
 	mapKey = [[
 Input:mapKey(buttonIndex, keys)-- buttonIndex is a string of the button combination you want mapped to a set of keys. e.g. "a" or "aback"
