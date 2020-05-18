@@ -16,6 +16,7 @@ buttonIndex = -- See Wasx.help("mapKey")
 TorS = "trigger" or "stick"
 output = -- See Wasx.help("mapKeyAnalog")
 var, info = -- See Wasx.help("index")
+left, right, tag = -- See Wasx.help("vibrate")
 ```
 Usage
 ```lua
