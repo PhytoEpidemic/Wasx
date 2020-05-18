@@ -1,4 +1,4 @@
-# Wasx v1.0.0
+# Wasx v1.1.0
 A very versatile input manager for [LÖVE](http://love2d.org) version 11.3
 
 ```lua
@@ -41,6 +41,21 @@ Saves the Input.keyMappings table to the specified path. fileName will default t
 Input:mapKeyAnalog(TorS, side, output, keys)
 ```
 output is a number between 0 and 1 for "trigger", or is a table that looks like this {x = 0, y = 0} with the values set between -1 and 1.
+
+```lua
+Input:vibrate(left, right, tag)
+```
+e.g.
+```lua
+left = false-- pass false or nil to skip a value.
+right = {1, 0, 2}-- startingStrength, endStrength, transitionTime -- Strength values are between 0 and 1.
+tag = "myCustomName"-- If you give a tag the vibration settings will go in/replace Input.activeVibrations[tag] instead of creating a new index (optional).
+Input:vibrate(left, right, tag)
+```
+
+Adds vibration settings table to Input.activeVibrations
+If no values are givin then Input.activeVibrations will be cleared.
+Use ```Input:vibrate(tag)``` to clear only Input.activeVibrations[tag].
 
 ```lua
 Input:button(button, button2,...)
