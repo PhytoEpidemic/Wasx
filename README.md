@@ -1,4 +1,4 @@
-# Wasx v1.1.1
+# Wasx v1.1.2
 A very versatile input manager for [LÖVE](http://love2d.org) version 11.3
 
 ```lua
