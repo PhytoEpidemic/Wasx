@@ -1,6 +1,6 @@
 
 local Wasx = {
-	_VERSION     = 'Wasx v1.0.1',
+	_VERSION     = 'Wasx v1.1.2',
 	_DESCRIPTION = 'A very versatile input manager for LÖVE',
 	_URL         = 'https://github.com/PhytoEpidemic/Wasx',
 	_LICENSE     = [[
@@ -30,7 +30,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	pathToThisFile = (...):gsub("%.", "/") .. ".lua",
 }
 
-Wasx.mt = {
+local allJoysticks = {}
+
+local buttonsKeysMT = {
 	__eq = function(o1, o2) 
 		for key,item in ipairs(o1) do
 			if not o2[key] then
@@ -59,7 +61,7 @@ Wasx.mt = {
 
 local sq2 = math.sqrt(2)
 
-Wasx.vec2mt = {
+local vec2mt = {
 	__add = function(o1, o2)
 		local new = {x = 0, y = 0}
 		local length = math.abs(o1.x+o2.x)+math.abs(o1.y+o2.y)
@@ -74,7 +76,7 @@ Wasx.vec2mt = {
 	end,
 }
 
-Wasx.keyMapMT = {
+local keyMapMT = {
 	__tostring = function(t)
 		local cart     
 		local autoref  
@@ -127,7 +129,7 @@ function Wasx.new(id)
 	
 	local self = {}
 	
-	self.data = {}
+	self.data = setmetatable({},{__call = function(t,v) return t[v] end})
 	
 	self.activeVibrations = {}
 	
@@ -144,7 +146,7 @@ function Wasx.new(id)
 		analog = {trigger = {left = {}, right = {}}, stick = {left = {}, right = {}}},
 	}
 	
-	setmetatable(self.keyMappings, Wasx.keyMapMT)
+	setmetatable(self.keyMappings, keyMapMT)
 	
 	self.id = id
 	
@@ -166,6 +168,18 @@ function Wasx.new(id)
 	
 	self.__index = self
 	
+	setmetatable(self,{
+		__call = function(o1, ...)
+			if o1.data[...] ~= nil then
+				return o1.data[...]
+			elseif ... == "stick" or ... == "trigger" then
+				return o1:mapKeyAnalog(...)
+			else
+				return o1:index(...)
+			end
+		end,
+	})
+	allJoysticks[tostring(self.id)] = self
 	return self
 end
 
@@ -180,7 +194,7 @@ function Wasx:isConnected()
 	else
 		local joysticks = love.joystick.getJoysticks()
 		if joysticks[self.id] then
-			self.joystick = joysticks[id]
+			self.joystick = joysticks[self.id]
 			return true
 		else
 			return false
@@ -234,7 +248,7 @@ function Wasx:mapKeyAnalog(TorS,side,output,keys)
 		if type(output["y"]) ~= "number" then
 			return error([[Bad argument #3. Expected number for index "y", got: ]]..type(output["y"]))
 		end
-		setmetatable(output,self.vec2mt)
+		setmetatable(output,vec2mt)
 	end
 	if TorS == "trigger" then
 		if type(output) ~= "number" then
@@ -256,7 +270,7 @@ function Wasx:mapKeyAnalog(TorS,side,output,keys)
 			return error("Bad argument #4. Must be a numbered table filled with only strings and/or numbers. Index: "..tostring(index).." Expected string, got: "..type(key))
 		end
 	end
-	setmetatable(keys,self.mt)
+	setmetatable(keys,buttonsKeysMT)
 	self.keyMappings["analog"][TorS][side][tostring(keys)] = {keys = keys,output = output}
 end
 
@@ -296,10 +310,10 @@ function Wasx:loadKeyMappings(path,name)
 		return error(err)
 	end
 	self.keyMappings = dataChunk()
-	setmetatable(self.keyMappings, self.keyMapMT)
+	setmetatable(self.keyMappings, keyMapMT)
 	for lr,LR in pairs(self.keyMappings["analog"]["stick"]) do
 		for i,index in pairs(LR) do
-			setmetatable(index["output"], self.vec2mt)
+			setmetatable(index["output"], vec2mt)
 		end
 	end
 end
@@ -460,7 +474,7 @@ function Wasx:button(...)
 			return error("Bad argument #"..tostring(index)..". Expected string, got: "..type(key))
 		end
 	end
-	setmetatable(buttons,self.mt)
+	setmetatable(buttons,buttonsKeysMT)
 	local buttonIndex = tostring(buttons)
 	local isDown = self:isDown(buttonIndex,...)
 	return isDown
@@ -476,7 +490,7 @@ function Wasx:buttonOnce(...)
 			return error("Bad argument #"..tostring(index)..". Expected string, got: "..type(key))
 		end
 	end
-	setmetatable(buttons,self.mt)
+	setmetatable(buttons,buttonsKeysMT)
 	local buttonIndex = tostring(buttons)
 	local isDown = self:isDown(buttonIndex,...)
 	if self.held[buttonIndex] then
@@ -502,7 +516,7 @@ function Wasx:buttonToggle(...)
 			return error("Bad argument #"..tostring(index)..". Expected string, got: "..type(key))
 		end
 	end
-	setmetatable(buttons,self.mt)
+	setmetatable(buttons,buttonsKeysMT)
 	local buttonIndex = tostring(buttons)
 	local isDown = self:isDown(buttonIndex,...)
 	if self.toggles[buttonIndex] then
@@ -586,34 +600,34 @@ setmetatable(indexInputs,indexMT)
 function Wasx:index(var,info)
 	if type(info) ~= "table" then
 		return error("Bad argument #2. Expected table, got: "..type(info))
-	elseif type(info.input) ~= "string" then
-		return error([[Bad argument #2, index["input"]. Expected string, got: ]]..type(info.input))
+	elseif type(info.type) ~= "string" then
+		return error([[Bad argument #2, index["type"]. Expected string, got: ]]..type(info.type))
 	end
-	if not indexInputs[info.input] then
-		return error([[Bad argument #2, index["input"]. Expected string (]]..tostring(indexInputs)..[[) got: "]]..info.input..[["]])
+	if not indexInputs[info.type] then
+		return error([[Bad argument #2, index["type"]. Expected string (]]..tostring(indexInputs)..[[) got: "]]..info.type..[["]])
 	end
 	
 	self.data[var] = true
 	if info.buttons then
-		setmetatable(info.buttons, self.mt)
+		setmetatable(info.buttons, buttonsKeysMT)
 		info.buttonIndex = tostring(info.buttons)
 	end
 	self.keyMappings.data[var] = info
 	if info.keys and info.buttons then
 		return self:mapKey(info.buttonIndex, info.keys)
 	elseif info.keys and info.output then
-		if info.input == "trigger" then
+		if info.type == "trigger" then
 			if not info.side then
-				return error([[When useing input = "trigger" you must include side = "left or "right".]])
+				return error([[When useing type = "trigger" you must include side = "left or "right".]])
 			elseif type(info.side) ~= "string" then
 				return error([[Bad argument #2, index["side"]. Expected string, got: ]]..type(info.side))
 			elseif info.side ~= "left" and info.side ~= "right" then
 				return error([[Bad argument #2 index["side"]. Expected string "right" or "left", got: "]]..info.side..[["]])
 			end
 			return self:mapKeyAnalog("trigger", info.side, info.output, info.keys)
-		elseif info.input == "axes" then
+		elseif info.type == "axes" then
 			if not info.side then
-				return error([[When useing input = "axes" you must include side = "left or "right".]])
+				return error([[When useing type = "axes" you must include side = "left or "right".]])
 			elseif type(info.side) ~= "string" then
 				return error([[Bad argument #2, index["side"]. Expected string, got: ]]..type(info.side))
 			elseif info.side ~= "left" and info.side ~= "right" then
@@ -623,18 +637,18 @@ function Wasx:index(var,info)
 		end
 	elseif info.keys then
 		return self:mapKey(var, info.keys)
-	elseif info.input == "angle" then
+	elseif info.type == "angle" then
 		if not info.side then
-			return error([[When useing input = "angle" you must include side = "left or "right".]])
+			return error([[When useing type = "angle" you must include side = "left or "right".]])
 		elseif type(info.side) ~= "string" then
 			return error([[Bad argument #2, index["side"]. Expected string, got: ]]..type(info.side))
 		elseif info.side ~= "left" and info.side ~= "right" then
 			return error([[Bad argument #2, index["side"]. Expected string "right" or "left", got: "]]..info.side..[["]])
 		end
 		self.keyMappings.angle[info.side][var] = true
-	elseif info.input == "axes" then
+	elseif info.type == "axes" then
 		if not info.side then
-			return error([[When useing input = "axes" you must include side = "left or "right".]])
+			return error([[When useing type = "axes" you must include side = "left or "right".]])
 		elseif type(info.side) ~= "string" then
 			return error([[Bad argument #2, index["side"]. Expected string, got: ]]..type(info.side))
 		elseif info.side ~= "left" and info.side ~= "right" then
@@ -647,49 +661,58 @@ end
 
 function Wasx:updateData(dt)
 	dt = dt or 0.016
-	if self.joystick:isVibrationSupported( ) then
-		local vibrateLeft = 0
-		local vibrateRight = 0
-		for i,v in pairs(self.activeVibrations) do
-			if v.left[3] > 0 then
-				local x = v.left[4]-v.left[3]
-				local m = (v.left[1]-v.left[2])/(0-v.left[4])
-				vibrateLeft = vibrateLeft+(m*x+v.left[1])
-				v.left[3] = v.left[3]-dt
+	local function update(self)
+		if self.joystick and self.joystick:isVibrationSupported( ) then
+			local vibrateLeft = 0
+			local vibrateRight = 0
+			for i,v in pairs(self.activeVibrations) do
+				if v.left[3] > 0 then
+					local x = v.left[4]-v.left[3]
+					local m = (v.left[1]-v.left[2])/(0-v.left[4])
+					vibrateLeft = vibrateLeft+(m*x+v.left[1])
+					v.left[3] = v.left[3]-dt
+				end
+				if v.right[3] > 0 then
+					local x = v.right[4]-v.right[3]
+					local m = (v.right[1]-v.right[2])/(0-v.right[4])
+					vibrateRight = vibrateRight+(m*x+v.right[1])
+					v.right[3] = v.right[3]-dt
+				end
+				if v.left[3] <= 0 and v.right[3] <= 0 then
+					table.remove(self.activeVibrations,i)
+				end
 			end
-			if v.right[3] > 0 then
-				local x = v.right[4]-v.right[3]
-				local m = (v.right[1]-v.right[2])/(0-v.right[4])
-				vibrateRight = vibrateRight+(m*x+v.right[1])
-				v.right[3] = v.right[3]-dt
+			local maxStrength = 0.5 -- This should be 1 but I think LOVE has a bug ¯\_(ツ)_/¯
+			self.joystick:setVibration( math.min(maxStrength,vibrateLeft*maxStrength), math.min(maxStrength,vibrateRight*maxStrength) )
+		end
+		for var,info in pairs(self.keyMappings.data) do
+			local pass
+			if info.buttons then
+				pass = info.buttons
+			elseif info.keys then
+				pass = var
 			end
-			if v.left[3] <= 0 and v.right[3] <= 0 then
-				table.remove(self.activeVibrations,i)
+			if info.type == "button" then
+				self.data[var] = self:button(pass)
+			elseif info.type == "buttonOnce" then
+				self.data[var] = self:buttonOnce(pass)
+			elseif info.type == "buttonToggle" then
+				self.data[var] = self:buttonToggle(pass)
+			elseif info.type == "angle" then
+				self.data[var] = self:angle(info.side,info.deadzone)
+			elseif info.type == "axes" then
+				self.data[var] = self:axes(info.side,info.deadzone)
+			elseif info.type == "trigger" then
+				self.data[var] = self:trigger(info.side)
 			end
 		end
-		local maxStrength = 0.5 -- This should be 1 but I think LOVE has a bug ¯\_(ツ)_/¯
-		self.joystick:setVibration( math.min(maxStrength,vibrateLeft*maxStrength), math.min(maxStrength,vibrateRight*maxStrength) )
 	end
-	for var,info in pairs(self.keyMappings.data) do
-		local pass
-		if info.buttons then
-			pass = info.buttons
-		elseif info.keys then
-			pass = var
+	if type(self) == "number" then
+		for id,joy in pairs(allJoysticks) do
+			update(joy)
 		end
-		if info.input == "button" then
-			self.data[var] = self:button(pass)
-		elseif info.input == "buttonOnce" then
-			self.data[var] = self:buttonOnce(pass)
-		elseif info.input == "buttonToggle" then
-			self.data[var] = self:buttonToggle(pass)
-		elseif info.input == "angle" then
-			self.data[var] = self:angle(info.side,info.deadzone)
-		elseif info.input == "axes" then
-			self.data[var] = self:axes(info.side,info.deadzone)
-		elseif info.input == "trigger" then
-			self.data[var] = self:trigger(info.side)
-		end
+	else
+		update(self)
 	end
 end
 
@@ -761,7 +784,7 @@ tag = "myCustomName"-- If you give a tag the vibration settings will go in/repla
 Input:index(var, info)-- This function will link Input.data[var] to the specified input function.
 e.g.
 info = {
-	input = ]]..tostring(indexInputs)..[[, 
+	type = ]]..tostring(indexInputs)..[[, 
 	keys = {"w", "space"}, -- (optional if buttons are givin)
 	buttons = {"a", "b"}, -- (optional if keys are givin)
 	------- next 2 are only for analog inputs ("axes" or "trigger")
@@ -770,10 +793,10 @@ info = {
 	deadzone = 0-1 -- (optional) default is 0.25 if no deadzone is givin,
 }
 
-input = "angle" is special, you only need to put a side.
+type = "angle" is special, you only need to put a side.
 e.g.
 info = {
-	input = "angle",
+	type = "angle",
 	side = "left" or "right",
 }
 
@@ -781,7 +804,7 @@ If you make an index tied to a stick axes you can just map the rest with Input:m
 e.g.
 Input:mapKeyAnalog("stick", "left", {x = 0, y = -1}, {"w"})
 Input:index("move", {
-	input = "axes",
+	type = "axes",
 	keys = {"a"},
 	side = "left",
 	output = {x = -1, y = 0},
@@ -794,6 +817,8 @@ Input:index("jump", info)
 	 ]],
 	 mapKey = [[
 Input:updateData(dt)-- Updates all the variables in Input.data.
+
+Wasx.updateData(dt)-- optional usage.
 	 ]],
 	mapKey = [[
 Input:mapKey(buttonIndex, keys)-- buttonIndex is a string of the button combination you want mapped to a set of keys. e.g. "a" or "aback"
